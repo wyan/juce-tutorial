@@ -1,0 +1,70 @@
+.DS_Store
+.idea
+*.log
+tmp/
+
+# Build directories
+/build
+/build*/
+
+# Xcode build artifacts
+*.xcworkspace
+*.xcuserstate
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+*.xcodeproj/xcuserdata/
+
+# Visual Studio artifacts
+*.sln
+*.vcxproj*
+*.vcxproj.filters
+*.user
+*.obj
+*.pdb
+*.ipch
+*.tlog
+*.log
+
+# CMake-generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Backup / temp files
+*.swp
+*~
+.DS_Store
+*.tmp
+
+# JUCE-generated config files
+.juce/*
+*.jucer
+
+# JUCE build intermediate artifacts (if ever used)
+Builds/
+
+# Ignore compiled binaries
+*.exe
+*.app
+*.out
+*.so
+*.dylib
+*.dll
+
+# Ignore compiled plugins
+*.vst
+*.vst3
+*.component
+*.aaxplugin
+
+# Ignore JUCE submodule build artifacts
+JUCE/Builds/
+JUCE/CMakeBuild/
+JUCE/.vs/
+
+# Optional: user-specific config
+.vscode/
+.idea/
+*.code-workspace

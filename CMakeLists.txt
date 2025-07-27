@@ -8,7 +8,7 @@ add_subdirectory(JUCE)
 # Create a GUI app
 juce_add_gui_app(TestJuce
     VERSION 0.1.0
-    COMPANY_NAME "finitud labs"
+    COMPANY_NAME "finitud-labs"
     PRODUCT_NAME "test-juce"
 )
 
@@ -17,6 +17,8 @@ target_sources(TestJuce PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
 )
+
+juce_generate_juce_header(TestJuce)
 
 # JUCE modules to link
 target_link_libraries(TestJuce PRIVATE

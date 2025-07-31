@@ -1,14 +1,16 @@
 #pragma once
 
 #include <JuceHeader.h>
+#include "AudioEngine.h"
 
 class MainComponent : public juce::Component,
                      public juce::Slider::Listener,
-                     public juce::ComboBox::Listener
+                     public juce::ComboBox::Listener,
+                     public juce::Timer
 {
 public:
     MainComponent();
-    ~MainComponent() override = default;
+    ~MainComponent() override;
 
     void paint (juce::Graphics&) override;
     void resized() override;
@@ -17,6 +19,9 @@ public:
     void sliderValueChanged(juce::Slider* slider) override;
     void comboBoxChanged(juce::ComboBox* comboBox) override;
 
+    // Timer callback for audio status updates
+    void timerCallback() override;
+
 private:
     // Helper methods
     void setupComponents();
@@ -24,6 +29,7 @@ private:
     void updateStatus();
     void handlePlayStopButton();
     void handleFrequencyChange();
+    void updateAudioStatus();
 
     // GUI Components
     juce::Label titleLabel;
@@ -33,6 +39,10 @@ private:
     juce::ComboBox frequencyCombo;
     juce::Label frequencyLabel;
     juce::TextEditor statusEditor;
+    juce::Label audioStatusLabel;
+
+    // Audio Engine
+    std::unique_ptr<AudioEngine> audioEngine;
 
     // State variables
     bool isPlaying = false;

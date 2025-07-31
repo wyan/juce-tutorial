@@ -16,6 +16,7 @@ juce_add_gui_app(TestJuce
 target_sources(TestJuce PRIVATE
     Source/Main.cpp
     Source/MainComponent.cpp
+    Source/AudioEngine.cpp
 )
 
 juce_generate_juce_header(TestJuce)
@@ -24,4 +25,6 @@ juce_generate_juce_header(TestJuce)
 target_link_libraries(TestJuce PRIVATE
     juce::juce_gui_extra
     juce::juce_audio_basics
+    juce::juce_audio_devices
+    juce::juce_audio_utils
 )

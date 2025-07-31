@@ -2,15 +2,38 @@
 
 MainComponent::MainComponent()
 {
+    // Initialize audio engine
+    audioEngine = std::make_unique<AudioEngine>();
+
     setupComponents();
     setupStyling();
-    setSize (800, 600);
+
+    // Initialize audio
+    if (audioEngine->initializeAudio())
+    {
+        DBG("Audio initialized successfully");
+    }
+    else
+    {
+        DBG("Failed to initialize audio");
+    }
+
+    // Start timer for status updates
+    startTimer(100);  // Update every 100ms
+
+    setSize (800, 700);  // Increased height for audio status
+}
+
+MainComponent::~MainComponent()
+{
+    stopTimer();
+    audioEngine.reset();
 }
 
 void MainComponent::setupComponents()
 {
     // Title Label
-    titleLabel.setText("JUCE Audio Control Panel", juce::dontSendNotification);
+    titleLabel.setText("JUCE Audio Generator", juce::dontSendNotification);
     titleLabel.setJustificationType(juce::Justification::centred);
     titleLabel.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
     addAndMakeVisible(titleLabel);
@@ -44,6 +67,12 @@ void MainComponent::setupComponents()
     frequencyLabel.setText("Frequency", juce::dontSendNotification);
     frequencyLabel.setJustificationType(juce::Justification::centredLeft);
     addAndMakeVisible(frequencyLabel);
+
+    // Audio Status Label
+    audioStatusLabel.setText("Audio Status", juce::dontSendNotification);
+    audioStatusLabel.setJustificationType(juce::Justification::centredLeft);
+    audioStatusLabel.setFont(juce::Font(juce::FontOptions().withHeight(16.0f).withStyle("Bold")));
+    addAndMakeVisible(audioStatusLabel);
 
     // Status Editor
     statusEditor.setMultiLine(true);
@@ -137,6 +166,12 @@ void MainComponent::resized()
 
     bounds.removeFromTop(spacing);
 
+    // Audio status area
+    auto audioStatusArea = bounds.removeFromTop(100);
+    audioStatusLabel.setBounds(audioStatusArea);
+
+    bounds.removeFromTop(spacing);
+
     // Status area (remaining space)
     statusEditor.setBounds(bounds);
 }
@@ -146,6 +181,7 @@ void MainComponent::sliderValueChanged(juce::Slider* slider)
     if (slider == &volumeSlider)
     {
         currentVolume = slider->getValue();
+        audioEngine->setVolume(static_cast<float>(currentVolume));
         updateStatus();
     }
 }
@@ -167,6 +203,9 @@ void MainComponent::handlePlayStopButton()
     auto color = isPlaying ? juce::Colours::red : juce::Colour(0xff4299e1);
     playStopButton.setColour(juce::TextButton::buttonColourId, color);
 
+    // Update audio engine
+    audioEngine->setPlaying(isPlaying);
+
     updateStatus();
 }
 
@@ -181,13 +220,20 @@ void MainComponent::handleFrequencyChange()
         case 4: selectedFrequency = 784; break;
         default: selectedFrequency = 440; break;
     }
+
+    audioEngine->setFrequency(static_cast<float>(selectedFrequency));
     updateStatus();
+}
+
+void MainComponent::timerCallback()
+{
+    updateAudioStatus();
 }
 
 void MainComponent::updateStatus()
 {
     juce::String status;
-    status << "=== JUCE Audio Control Panel Status ===\n\n";
+    status << "=== JUCE Audio Generator Status ===\n\n";
     status << "State: " << (isPlaying ? "PLAYING" : "STOPPED") << "\n";
     status << "Volume: " << juce::String(currentVolume, 2) << " ("
            << juce::String(int(currentVolume * 100)) << "%)\n";
@@ -196,17 +242,27 @@ void MainComponent::updateStatus()
 
     if (isPlaying)
     {
-        status << "♪ Audio generation active\n";
-        status << "♪ Frequency: " << selectedFrequency << " Hz sine wave\n";
+        status << "♪ Sine wave generation active\n";
+        status << "♪ Frequency: " << selectedFrequency << " Hz\n";
         status << "♪ Amplitude: " << juce::String(currentVolume, 3) << "\n";
+        status << "♪ Real-time audio processing enabled\n";
     }
     else
     {
         status << "⏸ Audio generation stopped\n";
-        status << "Ready to play at " << selectedFrequency << " Hz\n";
+        status << "Ready to generate " << selectedFrequency << " Hz sine wave\n";
     }
 
     status << "\nLast updated: " << juce::Time::getCurrentTime().toString(true, true);
 
     statusEditor.setText(status, juce::dontSendNotification);
+}
+
+void MainComponent::updateAudioStatus()
+{
+    if (audioEngine)
+    {
+        auto audioStatus = audioEngine->getAudioDeviceStatus();
+        audioStatusLabel.setText("Audio Device Status:\n" + audioStatus, juce::dontSendNotification);
+    }
 }

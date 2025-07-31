@@ -1,0 +1,74 @@
+#!/bin/bash
+# notarize.sh.in - Template for macOS notarization script
+
+set -e
+
+TARGET_NAME="@target_name@"
+BUNDLE_PATH="@TARGET_BUNDLE_DIR@"
+BUILD_DIR="@CMAKE_CURRENT_BINARY_DIR@"
+
+echo "=== Notarizing ${TARGET_NAME} ==="
+
+# Check if bundle exists
+if [ ! -d "${BUNDLE_PATH}" ]; then
+    echo "ERROR: Bundle not found at ${BUNDLE_PATH}"
+    exit 1
+fi
+
+# Check if notarization credentials are configured
+if [ -z "${NOTARIZATION_APPLE_ID}" ] || [ -z "${NOTARIZATION_PASSWORD}" ] || [ -z "${NOTARIZATION_TEAM_ID}" ]; then
+    echo "WARNING: Notarization credentials not configured"
+    echo "Set the following environment variables:"
+    echo "  NOTARIZATION_APPLE_ID - Your Apple ID"
+    echo "  NOTARIZATION_PASSWORD - App-specific password"
+    echo "  NOTARIZATION_TEAM_ID - Your team ID"
+    echo "Skipping notarization..."
+    exit 0
+fi
+
+# Create ZIP for notarization
+ZIP_PATH="${BUILD_DIR}/${TARGET_NAME}_notarization.zip"
+echo "Creating ZIP for notarization: ${ZIP_PATH}"
+
+cd "$(dirname "${BUNDLE_PATH}")"
+zip -r "${ZIP_PATH}" "$(basename "${BUNDLE_PATH}")"
+
+# Submit for notarization
+echo "Submitting for notarization..."
+xcrun notarytool submit "${ZIP_PATH}" \
+    --apple-id "${NOTARIZATION_APPLE_ID}" \
+    --password "${NOTARIZATION_PASSWORD}" \
+    --team-id "${NOTARIZATION_TEAM_ID}" \
+    --wait
+
+if [ $? -eq 0 ]; then
+    echo "Notarization successful!"
+
+    # Staple the notarization
+    echo "Stapling notarization..."
+    xcrun stapler staple "${BUNDLE_PATH}"
+
+    if [ $? -eq 0 ]; then
+        echo "Stapling successful!"
+
+        # Verify the stapled notarization
+        echo "Verifying stapled notarization..."
+        xcrun stapler validate "${BUNDLE_PATH}"
+
+        if [ $? -eq 0 ]; then
+            echo "✓ Notarization and stapling completed successfully!"
+        else
+            echo "WARNING: Stapling verification failed"
+        fi
+    else
+        echo "WARNING: Stapling failed"
+    fi
+else
+    echo "ERROR: Notarization failed"
+    exit 1
+fi
+
+# Clean up
+rm -f "${ZIP_PATH}"
+
+echo "Notarization process completed for ${TARGET_NAME}"

@@ -12,7 +12,7 @@ void MainComponent::setupComponents()
     // Title Label
     titleLabel.setText("JUCE Audio Control Panel", juce::dontSendNotification);
     titleLabel.setJustificationType(juce::Justification::centred);
-    titleLabel.setFont(juce::Font(24.0f, juce::Font::bold));
+    titleLabel.setFont(juce::Font(juce::FontOptions().withHeight(24.0f).withStyle("Bold")));
     addAndMakeVisible(titleLabel);
 
     // Volume Slider and Label
